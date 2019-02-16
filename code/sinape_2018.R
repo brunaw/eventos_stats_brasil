@@ -42,7 +42,7 @@ res %>%
   scale_fill_manual(values = c('#f5c04b', 'rosybrown')) +
   labs(title = "Distribuição de sexos na 
 programação do Sinape 2018", 
-       caption = "Fonte: http://www.emr2019.com.br") +
+       caption = "Fonte: http://www.sinape2018.com.br/") +
   facet_wrap(~classe) +
   theme_bw()
 
