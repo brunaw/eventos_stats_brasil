@@ -1,15 +1,12 @@
-#' Author: Julio Trecenti
-#' Subject:
+library(tidyverse)
 
-# library(tidyverse)
-library(magrittr)
 
-# Import -----------------------------------------------------------------------
+
+# Dados ---------------------------------------------------
 u_pdf <- "www.leg.ufpr.br/~walmes/rbras63/livreto-rbras63.pdf"
 r <- httr::GET(u_pdf)
 rbras <- pdftools::pdf_text(r$content)
 
-# Tidy -------------------------------------------------------------------------
 
 # obtem linhas separadas
 linhas <- rbras %>% 
@@ -53,14 +50,13 @@ palestrantes <- linhas %>%
   stringr::str_squish() %>% 
   stringr::str_extract("[^,]+") %>% 
   purrr::set_names(rep("Palestrante", length(.))) %>% 
-  tibble::enframe("tipo_participacao", "nome")
+  tibble::enframe("classe", "nome")
 
-# bind
 da_rbras <- dplyr::bind_rows(autores, palestrantes)
 
-# sexo colocado na mão
-da_rbras <- tibble::tribble(
-  ~tipo_participacao, ~nome, ~sexo,
+# sexo colocado a mão
+res <- tibble::tribble(
+  ~classe, ~nome, ~sexo,
   "Autor", "Luiz Ricardo Nakamura - UFSC", "M",
   "Autor", "Samuel Macêdo", "M",
   "Autor", "Cristian Villegas - ESALQ/USP", "M",
@@ -73,14 +69,14 @@ da_rbras <- tibble::tribble(
   "Conferencista", "Rafael Izbiski", "M",
   "Conferencista", "David Bickel", "M",
   "Conferencista", "Guilherme J. M. Rosa", "M",
-  "Coordenador", "Paulo Canas Rodrigues", "M",
-  "Coordenador", "Francisco Louzada", "M",
-  "Coordenador", "Ana Paula Corte", "F",
-  "Coordenador", "Isolde Previdelli", "F",
-  "Coordenador", "Giovana Oliveira Silva", "F",
-  "Coordenador", "Isolde Previdelli", "F",
-  "Coordenador", "Alfredo José Barreto Luiz", "M",
-  "Coordenador", "Carlos Alberto de Bragança Pereira", "M",
+  "Coordenador(a)", "Paulo Canas Rodrigues", "M",
+  "Coordenador(a)", "Francisco Louzada", "M",
+  "Coordenador(a)", "Ana Paula Corte", "F",
+  "Coordenador(a)", "Isolde Previdelli", "F",
+  "Coordenador(a)", "Giovana Oliveira Silva", "F",
+  "Coordenador(a)", "Isolde Previdelli", "F",
+  "Coordenador(a)", "Alfredo José Barreto Luiz", "M",
+  "Coordenador(a)", "Carlos Alberto de Bragança Pereira", "M",
   "Autor", "Felipe Barletta", "M",
   "Autor", "Cayan Atreio Portela Bárcena Saavedra", "M",
   "Autor", "Augusto Felix Marcolin", "M",
@@ -114,10 +110,25 @@ da_rbras <- tibble::tribble(
   "Palestrante", "Alexandre Galvão Patriota", "M"
 )
 
-# Visualize --------------------------------------------------------------------
+write.table(res, "data/rbras_2018.txt")
 
-# Model ------------------------------------------------------------------------
+# Gráficos --------------------------------------------
+res %>% 
+  group_by(classe, sexo) %>% 
+  count() %>% 
+  group_by(classe) %>% 
+  mutate(porcentagem = n/sum(n)) %>% 
+  ungroup() %>% 
+  ggplot(aes(y = porcentagem, x = sexo)) +
+  geom_histogram(stat = "identity", aes(fill = sexo)) +
+  scale_fill_manual(values = c('#f5c04b', 'rosybrown')) +
+  labs(title = "Distribuição de sexos na 
+programação da RBras 2018", 
+       caption = "Fonte: www.leg.ufpr.br/~walmes/rbras63") +
+  facet_wrap(~classe) +
+  theme_bw()
 
-# Export -----------------------------------------------------------------------
-
-# readr::write_rds(d, "")
+ggsave("img/rbras_2018.pdf", 
+       plot = last_plot(), 
+       width = 6, height = 4, 
+       units = "in", dpi = 300)
