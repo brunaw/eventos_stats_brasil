@@ -27,8 +27,8 @@ linhas_2p <- linhas %>%
   ) %>% 
   dplyr::select(titulo, nome)
 
-# todos os autores (o que vem depois de xxx:)
-autores <- linhas_2p %>% 
+# todos os Palestrantees (o que vem depois de xxx:)
+Palestrantees <- linhas_2p %>% 
   dplyr::mutate(tipo = stringr::str_detect(titulo, "[0-9]"),
                 grupo = cumsum(tipo)) %>% 
   dplyr::group_by(grupo) %>% 
@@ -45,7 +45,7 @@ autores <- linhas_2p %>%
   head(102)
 
 # todos os palestrantes (que vem depois dos titulos com pts)
-palestrantes <- linhas %>% 
+autores <- linhas %>% 
   stringr::str_subset(" {6,7}(?=[A-Z])") %>% 
   stringr::str_squish() %>% 
   stringr::str_extract("[^,]+") %>% 
@@ -57,12 +57,12 @@ da_rbras <- dplyr::bind_rows(autores, palestrantes)
 # sexo colocado a mão
 res <- tibble::tribble(
   ~classe, ~nome, ~sexo,
-  "Autor", "Luiz Ricardo Nakamura - UFSC", "M",
-  "Autor", "Samuel Macêdo", "M",
-  "Autor", "Cristian Villegas - ESALQ/USP", "M",
-  "Autor", "Paulo Henrique Sales Guimarães - UFLA", "M",
-  "Autor", "Agatha S. Rodrigues - USP", "F",
-  "Autor", "Eduardo S. B. de Oliveira - UFSCar", "M",
+  "Palestrante", "Luiz Ricardo Nakamura - UFSC", "M",
+  "Palestrante", "Samuel Macêdo", "M",
+  "Palestrante", "Cristian Villegas - ESALQ/USP", "M",
+  "Palestrante", "Paulo Henrique Sales Guimarães - UFLA", "M",
+  "Palestrante", "Agatha S. Rodrigues - USP", "F",
+  "Palestrante", "Eduardo S. B. de Oliveira - UFSCar", "M",
   "Conferencista", "Louise Ryan", "F",
   "Conferencista", "Bárbara Henning", "F",
   "Conferencista", "Jacob Hjelmborg", "M",
@@ -77,13 +77,13 @@ res <- tibble::tribble(
   "Coordenador(a)", "Isolde Previdelli", "F",
   "Coordenador(a)", "Alfredo José Barreto Luiz", "M",
   "Coordenador(a)", "Carlos Alberto de Bragança Pereira", "M",
-  "Autor", "Felipe Barletta", "M",
-  "Autor", "Cayan Atreio Portela Bárcena Saavedra", "M",
-  "Autor", "Augusto Felix Marcolin", "M",
-  "Autor", "Carla Regina Guimarães Brighenti", "F",
-  "Autor", "Matheus Saraiva Alcino", "M",
-  "Autor", "Vanessa Ferreira Sehaber", "F",
-  "Autor", "Peter de Matos Campos", "M",
+  "Palestrante", "Felipe Barletta", "M",
+  "Palestrante", "Cayan Atreio Portela Bárcena Saavedra", "M",
+  "Palestrante", "Augusto Felix Marcolin", "M",
+  "Palestrante", "Carla Regina Guimarães Brighenti", "F",
+  "Palestrante", "Matheus Saraiva Alcino", "M",
+  "Palestrante", "Vanessa Ferreira Sehaber", "F",
+  "Palestrante", "Peter de Matos Campos", "M",
   "Palestrante", "Paulo Canas Rodrigues", "M",
   "Palestrante", "Carlos Tadeu dos Santos Dias", "M",
   "Palestrante", "Gleici da Silva Castro Perdoná", "F",
@@ -113,6 +113,8 @@ res <- tibble::tribble(
 write.table(res, "data/rbras_2018.txt")
 
 # Gráficos --------------------------------------------
+res = read.table("data/rbras_2018.txt")
+
 res %>% 
   group_by(classe, sexo) %>% 
   count() %>% 
@@ -122,13 +124,36 @@ res %>%
   ggplot(aes(y = porcentagem, x = sexo)) +
   geom_histogram(stat = "identity", aes(fill = sexo)) +
   scale_fill_manual(values = c('#f5c04b', 'rosybrown')) +
+  scale_y_continuous(labels = 
+                       scales::percent_format(accuracy = 1)) +
   labs(title = "Distribuição de sexos na 
-programação da RBras 2018", 
+programação da RBras 2018 - por participação", 
        caption = "Fonte: www.leg.ufpr.br/~walmes/rbras63") +
   facet_wrap(~classe) +
   theme_bw()
 
-ggsave("img/rbras_2018.pdf", 
+ggsave("img/rbras_2018_part.pdf", 
        plot = last_plot(), 
        width = 6, height = 4, 
+       units = "in", dpi = 300)
+
+res %>% 
+  group_by(sexo) %>% 
+  count() %>% 
+  ungroup() %>% 
+  mutate(porcentagem = n/sum(n)) %>% 
+  ggplot(aes(y = porcentagem, x = sexo)) +
+  geom_histogram(stat = "identity", aes(fill = sexo)) +
+  scale_fill_manual(values = c('#f5c04b', 'rosybrown')) +
+  #facet_wrap(~classe) +
+  scale_y_continuous(labels = 
+                       scales::percent_format(accuracy = 1)) +
+  labs(title = "Distribuição de sexos na 
+programação da RBras 2018 - geral", 
+       caption = "Fonte: www.leg.ufpr.br/~walmes/rbras63") +
+  theme_bw()
+
+ggsave("img/rbras_2018.pdf", 
+       plot = last_plot(), 
+       width = 5, height = 4, 
        units = "in", dpi = 300)

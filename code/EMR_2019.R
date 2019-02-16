@@ -40,6 +40,8 @@ res <- nomes %>%
 write.table(res, "data/EMR_2019.txt")
 
 # Gráficos --------------------------------------------
+res = read.table("data/EMR_2019.txt")
+
 res %>% 
   group_by(classe, sexo) %>% 
   count() %>% 
@@ -50,15 +52,38 @@ res %>%
   geom_histogram(stat = "identity", aes(fill = sexo)) +
   scale_fill_manual(values = c('#f5c04b', 'rosybrown')) +
   facet_wrap(~classe) +
+  scale_y_continuous(labels = 
+                       scales::percent_format(accuracy = 1)) +
   labs(title = "Distribuição de sexos na atual 
-programação do EMR 2019", 
+programação do EMR 2019 - por participação", 
        caption = "Fonte: http://www.emr2019.com.br") +
   theme_bw()
 
-ggsave("img/emr_2019.pdf", 
+ggsave("img/emr_2019_part.pdf", 
        plot = last_plot(), 
        width = 5, height = 3, 
        units = "in", dpi = 300)
 
 
 
+res %>% 
+  group_by(sexo) %>% 
+  count() %>% 
+  ungroup() %>% 
+  mutate(porcentagem = n/sum(n)) %>% 
+  ggplot(aes(y = porcentagem, x = sexo)) +
+  geom_histogram(stat = "identity", aes(fill = sexo)) +
+  scale_fill_manual(values = c('#f5c04b', 'rosybrown')) +
+  #facet_wrap(~classe) +
+  scale_y_continuous(labels = 
+                       scales::percent_format(accuracy = 1)) +
+  labs(title = "Distribuição de sexos na atual 
+programação do EMR 2019 - geral", 
+       caption = "Fonte: http://www.emr2019.com.br") +
+  theme_bw()
+
+
+ggsave("img/emr_2019.pdf", 
+       plot = last_plot(), 
+       width = 5, height = 4, 
+       units = "in", dpi = 300)
